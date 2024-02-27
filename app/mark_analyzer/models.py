@@ -4,11 +4,20 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 # Create your models here.
 class Expert(models.Model):
     uid = models.AutoField(primary_key=True, verbose_name='Номер')
-    name = models.CharField(null=False, max_length=64, verbose_name='Имя')
-    surname =  models.CharField(null=False, max_length=64, verbose_name='Фамилия, Отчество')
+    name = models.CharField(null=False, max_length=64, verbose_name='ФИО')
+    authority = models.FloatField(
+        null=False,
+        validators=[
+            MaxValueValidator(1),
+            MinValueValidator(0)
+        ],
+        verbose_name='Авторитет'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
 
     def __str__(self) -> str:
-        return f"{self.name} {self.surname}"
+        return f"{self.name}"
     
     class Meta:
         verbose_name = 'Эксперт'
@@ -17,9 +26,10 @@ class Expert(models.Model):
 
 
 class Article(models.Model):
-    IN_PROCESS = "--"
-    AGREED = "ОК"
-    EXPERTISE = "ДЭ"
+    IN_PROCESS = 0
+    AGREED = 1
+    EXPERTISE = -1
+
     ARTICLE_STATUS_CHOISES = {
         IN_PROCESS: "В процессе",
         AGREED: "Согласовано",
@@ -29,12 +39,19 @@ class Article(models.Model):
     uid = models.AutoField(primary_key=True, verbose_name='Номер')
     title = models.CharField(null=False, max_length=256, verbose_name='Название')
     author_full_name = models.CharField(null=False, max_length=64, verbose_name='Автор')
-    status = models.CharField(max_length=2, choices=ARTICLE_STATUS_CHOISES, default=IN_PROCESS, verbose_name='Статус')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
+    status = models.IntegerField(choices=ARTICLE_STATUS_CHOISES, default=IN_PROCESS, verbose_name='Статус')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создана')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлена')
 
     def __str__(self) -> str:
         return f'"{self.title}"'
     
+    def verbose(self):
+        try:
+            return Article.ARTICLE_STATUS_CHOISES[int(self.status)]
+        except:
+            return "-"
+
     class Meta:
         verbose_name = 'Статья'
         verbose_name_plural = 'Статьи'
@@ -44,6 +61,8 @@ class Marks(models.Model):
     uid = models.AutoField(primary_key=True, verbose_name='Номер')
     expert_id = models.ForeignKey(Expert, on_delete=models.PROTECT, verbose_name='Эксперт')
     article_id = models.ForeignKey(Article, on_delete=models.PROTECT, verbose_name='Статья')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
+    total_mark = models.IntegerField(default=0, verbose_name='Итоговая оценка')
     pni_1 = models.IntegerField(
         null=False,
         validators=[
@@ -145,10 +164,22 @@ class Marks(models.Model):
     )
 
     def __str__(self) -> str:
-        return f'ПНИ_1:{self.pni_1}, ПНИ_2:{self.pni_2}, ПНИ_3:{self.pni_3}, ПНИ_4:{self.pni_4},
-          ПНИ_5:{self.pni_5}, ПНИ_6:{self.pni_6}, ПО_1:{self.po_1}, ПО_2:{self.po_2}, ПО_3:{self.po_3}, 
-          ПО_4:{self.po_4}, ПО_5:{self.po_5}.'
+        return f"Итог: {self.total_mark}"
     
+    def to_array(self)->list[int]:
+        return [
+            self.pni_1,
+            self.pni_2,
+            self.pni_3,
+            self.pni_4,
+            self.pni_5,
+            self.pni_6,
+            self.po_1,
+            self.po_2,
+            self.po_3,
+            self.po_4,
+            self.po_5,
+        ]
     class Meta:
         verbose_name = 'Оценка'
         verbose_name_plural = 'Оценки'
