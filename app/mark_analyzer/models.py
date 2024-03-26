@@ -1,185 +1,146 @@
 from django.db import models
+from django.contrib.auth import models as auth_models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-# Create your models here.
-class Expert(models.Model):
-    uid = models.AutoField(primary_key=True, verbose_name='Номер')
-    name = models.CharField(null=False, max_length=64, verbose_name='ФИО')
-    authority = models.FloatField(
-        null=False,
-        validators=[
-            MaxValueValidator(1),
-            MinValueValidator(0)
-        ],
-        verbose_name='Авторитет'
-    )
+class User(auth_models.User):
+    NONE = 0
+    EXPERT = 1
+    WORKER = 2
+
+    USER_ROLE_CHOISES = {
+        NONE: "Пустая роль",
+        EXPERT: "Эксперт",
+        WORKER: "Обработчик статей",
+    }
+    uid = models.AutoField(primary_key=True, verbose_name='Id')
+    h_index = models.IntegerField(null=False, verbose_name='Индекс Хирша')
+    role = models.IntegerField(choices=USER_ROLE_CHOISES, default=NONE, verbose_name='Роль')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
 
     def __str__(self) -> str:
-        return f"{self.name}"
+        return f"{self.get_full_name()}"
     
     class Meta:
-        verbose_name = 'Эксперт'
-        verbose_name_plural = 'Эксперты'
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
-
-
-class Article(models.Model):
-    IN_PROCESS = 0
-    AGREED = 1
-    EXPERTISE = -1
-
-    ARTICLE_STATUS_CHOISES = {
-        IN_PROCESS: "В процессе",
-        AGREED: "Согласовано",
-        EXPERTISE: "Дополнительная экспертиза",
-    }
-    
-    uid = models.AutoField(primary_key=True, verbose_name='Номер')
-    title = models.CharField(null=False, max_length=256, verbose_name='Название')
-    author_full_name = models.CharField(null=False, max_length=64, verbose_name='Автор')
-    status = models.IntegerField(choices=ARTICLE_STATUS_CHOISES, default=IN_PROCESS, verbose_name='Статус')
+class Theme(models.Model):
+    uid = models.AutoField(primary_key=True, verbose_name='Id')
+    title = models.CharField(null=False, max_length=128, verbose_name='Название')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создана')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлена')
 
     def __str__(self) -> str:
-        return f'"{self.title}"'
+        return f"{self.title}"
     
-    def verbose(self):
-        try:
-            return Article.ARTICLE_STATUS_CHOISES[int(self.status)]
-        except:
-            return "-"
+    class Meta:
+        verbose_name = 'Тематика'
+        verbose_name_plural = 'Тематики'
+
+class UserTheme(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='user_id')
+    theme_id = models.ForeignKey(Theme, on_delete=models.CASCADE, verbose_name='theme_id')
+    class Meta:
+        verbose_name = 'Пользователь_тематика'
+        verbose_name_plural = 'Пользователь_тематика'
+
+class Criteria(models.Model):
+    uid = models.AutoField(primary_key=True, verbose_name='Id')
+    title = models.CharField(null=False, max_length=128, verbose_name='Название')
+    max_value = models.FloatField(null=False, verbose_name='Максимальное значение')
+    min_value = models.FloatField(null=False, verbose_name='Минимальное значение')
+    weight = models.FloatField(default=1.0, validators=[MaxValueValidator(1.0),MinValueValidator(0.001)], verbose_name='Вес')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
+
+    def __str__(self) -> str:
+        return f"{self.title}"
+    
+    class Meta:
+        verbose_name = 'Критерий'
+        verbose_name_plural = 'Критерии'
+
+class MarkList(models.Model):
+    uid = models.AutoField(primary_key=True, verbose_name='Id')
+    title = models.CharField(null=False, max_length=128, verbose_name='Название')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
+
+    def __str__(self) -> str:
+        return f"{self.title}"
+    
+    class Meta:
+        verbose_name = 'Набор оценок'
+        verbose_name_plural = 'Наборы оценок'
+
+class MarkListCriteria(models.Model):
+    mark_list_id = models.ForeignKey(MarkList, on_delete=models.CASCADE, verbose_name='mark_list_id')
+    criteria_id = models.ForeignKey(Criteria, on_delete=models.CASCADE, verbose_name='criteria_id')
+    class Meta:
+        verbose_name = 'Набор_оценок_критерий'
+        verbose_name_plural = 'Набор_оценок_критерий'
+
+class Article(models.Model):
+    UNALLOCATED = 0
+    ON_MARK = 1
+    MARKED = 2
+
+    STATUS_CHOISES = {
+        UNALLOCATED: "Не распределена",
+        ON_MARK: "На оценке",
+        MARKED: "Оценена",
+    }
+    uid = models.AutoField(primary_key=True, verbose_name='Id')
+    title = models.CharField(null=False, max_length=256, verbose_name='Название')
+    link = models.CharField(null=False, max_length=512, verbose_name='Статья')
+    status = models.IntegerField(choices=STATUS_CHOISES, default=UNALLOCATED, verbose_name='Статус')
+    total_mark = models.FloatField(default=0, verbose_name='Итог')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создана')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлена')
+
+    def __str__(self) -> str:
+        return f'{self.title}'
 
     class Meta:
         verbose_name = 'Статья'
         verbose_name_plural = 'Статьи'
 
+class ArticleTheme(models.Model):
+    article_id = models.ForeignKey(Article, on_delete=models.CASCADE, verbose_name='article_id')
+    theme_id = models.ForeignKey(Theme, on_delete=models.CASCADE, verbose_name='theme_id')
+    class Meta:
+        verbose_name = 'Статья_тематика'
+        verbose_name_plural = 'Статья_тематика'
 
-class Marks(models.Model):
-    uid = models.AutoField(primary_key=True, verbose_name='Номер')
-    expert_id = models.ForeignKey(Expert, on_delete=models.PROTECT, verbose_name='Эксперт')
-    article_id = models.ForeignKey(Article, on_delete=models.PROTECT, verbose_name='Статья')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
-    total_mark = models.IntegerField(default=0, verbose_name='Итоговая оценка')
-    pni_1 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПНИ_1',
-        help_text='Соответствие предмета доклада тематике конференции',
-    )
-    pni_2 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПНИ_2',
-        help_text='Научная новизна представляемого материала',
-    )
-    pni_3 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПНИ_3',
-        help_text='Актуальность исследования',
-    )
-    pni_4 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПНИ_4',
-        help_text='Обоснованность применяемых методов исследования',
-    )
-    pni_5 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПНИ_5',
-        help_text='Обоснованность структуры статьи',
-    )
-    pni_6 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПНИ_6',
-        help_text='Обоснованность и наглядность представленных рисунков, графиков и таблиц',
-    )
-    po_1 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПО_1',
-        help_text='Соответствие оформленных материалов заданному шаблону',
-    )
-    po_2 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПО_2',
-        help_text='Качество языка изложения',
-    )
-    po_3 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПО_3',
-        help_text='Соответствие аннотации описанию работы',
-    )
-    po_4 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПО_4',
-        help_text='Обоснованность и качество ключевых слов ',
-    )
-    po_5 = models.IntegerField(
-        null=False,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
-        ],
-        verbose_name='ПО_5',
-        help_text='Список литературы: адекватность и правильность цитирования',
-    )
+class Score(models.Model):
+    ON_MARK = 0
+    REJECTED = 1
 
-    def __str__(self) -> str:
-        return f"Итог: {self.total_mark}"
+    STATUS_CHOISES = {
+        ON_MARK: "На оценке",
+        REJECTED: "Нет согласования оценки",
+    }
+    uid = models.AutoField(primary_key=True, verbose_name='Id')
+    expert_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Эксперт')
+    article_id = models.ForeignKey(Article, on_delete=models.CASCADE, verbose_name='Статья')
+    mark_list_id = models.ForeignKey(MarkList, on_delete=models.CASCADE, verbose_name='Критерии')
+    status = models.IntegerField(choices=STATUS_CHOISES, default=ON_MARK, verbose_name='Статус')
+    total_mark = models.FloatField(default=0, verbose_name='Итог')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создана')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлена')
     
-    def to_array(self)->list[int]:
-        return [
-            self.pni_1,
-            self.pni_2,
-            self.pni_3,
-            self.pni_4,
-            self.pni_5,
-            self.pni_6,
-            self.po_1,
-            self.po_2,
-            self.po_3,
-            self.po_4,
-            self.po_5,
-        ]
+    def __str__(self) -> str:
+        return f"{self.total_mark}"
+    
     class Meta:
         verbose_name = 'Оценка'
         verbose_name_plural = 'Оценки'
+
+class ScoreCriteria(models.Model):
+    score_id = models.ForeignKey(Score, on_delete=models.CASCADE, verbose_name='score_id')
+    criteria_id = models.ForeignKey(Criteria, on_delete=models.CASCADE, verbose_name='criteria_id')
+    value = models.FloatField(null=False, verbose_name='Значение')
+    class Meta:
+        verbose_name = 'Оценка_критерий'
+        verbose_name_plural = 'Оценка_критерий'
