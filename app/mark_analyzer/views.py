@@ -1,9 +1,44 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 from django.views import View
+from django.http import HttpResponse
 
-# from .models import Article, Expert, Marks
+from .models import User
 # from .forms import ArticleForm, ExpertMarksFormSet
 # from .analize import Analyzer
+
+class AccessDenied(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'access_denied.html')
+
+class Login(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'login.html')
+    
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+      
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return redirect('/home/')
+        
+        return redirect('/login/')
+    
+class Logout(View):
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return redirect('/login/')
+    
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return redirect('/login/')
+
+class Home(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'page_expert.html')
 
 # class Experts(View):
 #     def get(self, request, *args, **kwargs):

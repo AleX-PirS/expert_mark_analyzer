@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static '/styles/nav.css' %}">
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="nav-buttons">
+                <a href="/home/">Домой</a>
+                <a href="/articles/">Статьи</a>
+                <a href="/experts/">Эксперты</a>
+            </div>
+            <div class="logout-button">
+                <a href="/logout/">Выйти</a>
+            </div>
+        </div>
+    </nav>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личная страница</title>
+    <link rel="stylesheet" href="{% static '/styles/page_expert.css'%}">
+</head>
+<body>
+    {% include 'nav.html' %}
+    <header>
+        <div class="container">
+            <div class="left">
+                <h1>Личная страница</h1>
+                <div class="name">
+                    <p>{{ name }}</p>
+                </div>
+                <p>Индекс Хирша: {{ h_index }}</p>
+                <p>Логин: {{ username }}</p>
+                <p>Всего оценок: {{ total_marks }}</p>
+                <p>Процент согласованных оценок: {{ total_percent }}</p>
+            </div>
+        </div>
+    </header>
+    <div class="down_info">
+        <div class="down_buttons">
+            <a href="#">Редактировать профиль</a>
+            <a href="#">Мои оценки</a>
+        </div>
+    </div>
+   
+    <main>
+        <div class="container">
+            <section class="ratings">
+                <h2>Мои оценки</h2>
+                {% comment %} <div class="rating">
+                    <a href="#" class="article-link">
+                        <h3>Название статьи 1</h3>
+                        <p class="status green">Проверка оценки пройдена</p>
+                    </a>
+                </div>
+                <div class="rating">
+                    <a href="#" class="article-link">
+                        <h3>Название статьи 2</h3>
+                        <p class="status red">Оценка некорректная</p>
+                    </a>
+                </div>
+                <div class="rating">
+                    <a href="#" class="article-link">
+                        <h3>Название статьи 3</h3>
+                        <p class="status yellow">Необходимо поставить оценку</p>
+                    </a>
+                </div> {% endcomment %}
+            </section>
+        </div>
+    </main>
+</body>
+</html>

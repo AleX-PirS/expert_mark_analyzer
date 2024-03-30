@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied</title>
+    <link rel="stylesheet" type="text/css" href="{% static '/styles/access_denied.css' %}">
+</head>
+<body>
+    {% include 'nav.html' %}
+    <div class="access-denied">
+        <div class="access-denied-message">Access Denied</div>
+    </div>
+</body>
+</html>

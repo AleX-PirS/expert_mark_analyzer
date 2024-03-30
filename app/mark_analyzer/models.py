@@ -13,7 +13,7 @@ class User(auth_models.User):
         WORKER: "Обработчик статей",
     }
     uid = models.AutoField(primary_key=True, verbose_name='Id')
-    h_index = models.IntegerField(null=False, verbose_name='Индекс Хирша')
+    h_index = models.IntegerField(default=-1, verbose_name='Индекс Хирша')
     role = models.IntegerField(choices=USER_ROLE_CHOISES, default=NONE, verbose_name='Роль')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
@@ -27,7 +27,7 @@ class User(auth_models.User):
 
 class Theme(models.Model):
     uid = models.AutoField(primary_key=True, verbose_name='Id')
-    title = models.CharField(null=False, max_length=128, verbose_name='Название')
+    title = models.CharField(unique=True, null=False, max_length=128, verbose_name='Название')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создана')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлена')
 
@@ -47,10 +47,11 @@ class UserTheme(models.Model):
 
 class Criteria(models.Model):
     uid = models.AutoField(primary_key=True, verbose_name='Id')
-    title = models.CharField(null=False, max_length=128, verbose_name='Название')
+    title = models.CharField(unique=True, null=False, max_length=128, verbose_name='Название')
     max_value = models.FloatField(null=False, verbose_name='Максимальное значение')
     min_value = models.FloatField(null=False, verbose_name='Минимальное значение')
     weight = models.FloatField(default=1.0, validators=[MaxValueValidator(1.0),MinValueValidator(0.001)], verbose_name='Вес')
+    about = models.CharField(default="", max_length=256, verbose_name='Описание')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
 
@@ -63,7 +64,7 @@ class Criteria(models.Model):
 
 class MarkList(models.Model):
     uid = models.AutoField(primary_key=True, verbose_name='Id')
-    title = models.CharField(null=False, max_length=128, verbose_name='Название')
+    title = models.CharField(unique=True, null=False, max_length=128, verbose_name='Название')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
 
@@ -92,6 +93,7 @@ class Article(models.Model):
         MARKED: "Оценена",
     }
     uid = models.AutoField(primary_key=True, verbose_name='Id')
+    created_by = models.ForeignKey(User, default="", on_delete=models.SET_DEFAULT, verbose_name="Добавил")
     title = models.CharField(null=False, max_length=256, verbose_name='Название')
     link = models.CharField(null=False, max_length=512, verbose_name='Статья')
     status = models.IntegerField(choices=STATUS_CHOISES, default=UNALLOCATED, verbose_name='Статус')
@@ -116,10 +118,12 @@ class ArticleTheme(models.Model):
 class Score(models.Model):
     ON_MARK = 0
     REJECTED = 1
+    DONE = 2
 
     STATUS_CHOISES = {
         ON_MARK: "На оценке",
         REJECTED: "Нет согласования оценки",
+        DONE: "Оценена",
     }
     uid = models.AutoField(primary_key=True, verbose_name='Id')
     expert_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Эксперт')
