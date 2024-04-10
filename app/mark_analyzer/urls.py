@@ -1,6 +1,7 @@
 from django.urls import path
 
-from .views import Login, Home, Logout, AccessDenied
+from .views import Login, Home, Logout, AccessDenied, HomeUpdate, AddUser,\
+AddArticle, Articles, ArticleDetail, Experts, ExpertDetail
 
 app_name = 'mark_analyzer'
 
@@ -11,18 +12,17 @@ urlpatterns = [
     path('logout/', Logout.as_view(), name='logout'),
 
     path('home/', Home.as_view(), name='own_page'),
-    # path('update/', VIEW, name='own_page_update'),
+    path('update/', HomeUpdate.as_view(), name='own_page_update'),
 
-    # path('articles/', VIEW, name='articles'), # all
-    # path('articles/add/', VIEW, name='add_article'), # worker
-    # path('articles/<int:pk>/', VIEW, name='article_detail'), # all
+    path('articles/', Articles.as_view(), name='articles'),
+    path('articles/add/', AddArticle.as_view(), name='add_article'),
+    path('articles/<int:pk>/', ArticleDetail.as_view(), name='article_detail'),
     # path('articles/<int:pk>/mark/', VIEW, name='article_mark'), # expert
-    # path('articles/<int:pk>/update/', VIEW, name='article_update'), # worker. if no marks yet 
 
-    # path('experts/', VIEW, name='experts'), # all
-    # path('experts/add/', VIEW, name='add_expert'), # worker
-    # path('experts/<int:pk>/', VIEW, name='expert_detail'), # all
-    # path('experts/<int:pk>/update/', VIEW, name='expert_update'), # worker
+    path('experts/', Experts.as_view(), name='experts'),
+    path('experts/add/', AddUser.as_view(), name='add_expert'),
+    path('experts/<str:username>/', ExpertDetail.as_view(), name='expert_detail'),
 
-    # path('marks/', VIEW, name='marks'), # expert
+    # path('home/marks/', VIEW, name='marks'), # expert
+    # path('home/articles', VIEW, name='marks'), # worker
 ]

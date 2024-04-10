@@ -46,7 +46,7 @@ class RoleCheckMiddleware:
             return response
 
         try:
-            role = User.objects.get(username=request.user.username)
+            role = User.objects.get(username=request.user.username).role
         except User.DoesNotExist:
             return redirect('/login/')
 
